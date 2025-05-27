@@ -1,11 +1,11 @@
 import { test as base } from '@playwright/test';
 import { LoginPage } from '@pages/LoginPage';
-import { HomePage } from '@pages/HomePage';
+import { ProductsPage } from '@pages/ProductsPage';
 
 // Define custom fixtures
 type MyFixtures = {
   loginPage: LoginPage;
-  homePage: HomePage;
+  productsPage: ProductsPage;
 };
 
 // Extend base test with custom fixtures
@@ -15,9 +15,9 @@ export const test = base.extend<MyFixtures>({
     await use(loginPage);
   },
 
-  homePage: async ({ page }, use) => {
-    const homePage = new HomePage(page);
-    await use(homePage);
+  productsPage: async ({ page }, use) => {
+    const productsPage = new ProductsPage(page);
+    await use(productsPage);
   },
 });
 

@@ -1,28 +1,60 @@
 {
   "name": "playwright-showcase-typescript",
   "version": "1.0.0",
-  "description": "",
+  "description": "BDD-style Playwright test automation showcase using Sauce Demo",
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
     "test:chrome": "playwright test --project=chromium",
     "test:firefox": "playwright test --project=firefox",
     "test:webkit": "playwright test --project=webkit",
     "test:mobile": "playwright test --project='mobile-*'",
-    "test:debug": "playwright test --debug",
+    "test:parallel": "playwright test --workers=4",
+    "test:serial": "playwright test --workers=1",
+    "test:login": "playwright test src/tests/login.spec.ts",
+    "test:products": "playwright test src/tests/products.spec.ts",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "test:critical": "playwright test --grep @critical",
+    "test:ci": "ENV=ci playwright test",
+    "test:dev": "ENV=dev playwright test --headed",
+    "test:staging": "ENV=staging playwright test",
+    "test:retries": "playwright test --retries=2",
     "test:trace": "playwright show-trace",
     "report": "playwright show-report",
+    "report:open": "npx playwright show-report",
+    "codegen": "playwright codegen https://www.saucedemo.com/v1",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write 'src/**/*.ts'",
-    "format:check": "prettier --check 'src/**/*.ts'"
+    "format:check": "prettier --check 'src/**/*.ts'",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf test-results playwright-report",
+    "pretest": "npm run clean",
+    "posttest": "npm run report:merge",
+    "report:merge": "node scripts/merge-reports.js || true",
+    "update:snapshots": "playwright test --update-snapshots",
+    "deps:check": "npm outdated",
+    "deps:update": "npm update",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/snicoledave/playwright-showcase-typescript.git"
   },
-  "keywords": [],
+  "keywords": [
+    "playwright",
+    "typescript",
+    "bdd",
+    "testing",
+    "automation",
+    "sauce-demo",
+    "page-object-model",
+    "e2e"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -39,6 +71,18 @@
     "lint-staged": "^16.0.0",
     "prettier": "^3.5.3",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "dotenv": "^16.3.1",
+    "@faker-js/faker": "^8.3.1"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }
