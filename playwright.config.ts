@@ -17,11 +17,11 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 10 * 1000,
+    actionTimeout: 15 * 1000,
     navigationTimeout: 30 * 1000,
   },
 

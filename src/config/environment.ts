@@ -28,10 +28,10 @@ export class Environment {
     // This structure allows easy switching between environments
     const configs: Record<string, EnvironmentConfig> = {
       dev: {
-        baseUrl: process.env.BASE_URL || 'https://www.saucedemo.com/v1',
-        apiUrl: process.env.API_URL || 'https://api.saucedemo.com/api', // Placeholder for future API testing
-        username: process.env.TEST_USERNAME || 'standard_user',
-        password: process.env.TEST_PASSWORD || 'secret_sauce',
+        baseUrl: process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com',
+        apiUrl: process.env.API_URL || 'https://opensource-demo.orangehrmlive.com/web/index.php/api/v2', // OrangeHRM API endpoint
+        username: process.env.TEST_USERNAME || 'Admin',
+        password: process.env.TEST_PASSWORD || 'admin123',
         timeout: parseInt(process.env.TIMEOUT || '30000'),
         headless: process.env.HEADLESS !== 'false',
         slowMo: parseInt(process.env.SLOW_MO || '0'),
@@ -40,12 +40,12 @@ export class Environment {
         trace: (process.env.TRACE || 'retain-on-failure') as 'on' | 'retain-on-failure' | 'off',
       },
       staging: {
-        // For Sauce Demo, staging might be the same as dev
+        // For OrangeHRM, staging might be the same as dev
         // In real projects, this would point to your staging environment
-        baseUrl: process.env.BASE_URL || 'https://www.saucedemo.com/v1',
-        apiUrl: process.env.API_URL || 'https://api.saucedemo.com/api',
-        username: process.env.TEST_USERNAME || 'standard_user',
-        password: process.env.TEST_PASSWORD || 'secret_sauce',
+        baseUrl: process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com',
+        apiUrl: process.env.API_URL || 'https://opensource-demo.orangehrmlive.com/web/index.php/api/v2',
+        username: process.env.TEST_USERNAME || 'Admin',
+        password: process.env.TEST_PASSWORD || 'admin123',
         timeout: parseInt(process.env.TIMEOUT || '45000'),
         headless: process.env.HEADLESS !== 'false',
         slowMo: parseInt(process.env.SLOW_MO || '0'),
@@ -55,10 +55,10 @@ export class Environment {
       },
       production: {
         // Production configuration with more conservative settings
-        baseUrl: process.env.BASE_URL || 'https://www.saucedemo.com/v1',
-        apiUrl: process.env.API_URL || 'https://api.saucedemo.com/api',
-        username: process.env.TEST_USERNAME || 'standard_user',
-        password: process.env.TEST_PASSWORD || 'secret_sauce',
+        baseUrl: process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com',
+        apiUrl: process.env.API_URL || 'https://opensource-demo.orangehrmlive.com/web/index.php/api/v2',
+        username: process.env.TEST_USERNAME || 'Admin',
+        password: process.env.TEST_PASSWORD || 'admin123',
         timeout: parseInt(process.env.TIMEOUT || '60000'),
         headless: process.env.HEADLESS !== 'false',
         slowMo: parseInt(process.env.SLOW_MO || '0'),
@@ -68,10 +68,10 @@ export class Environment {
       },
       ci: {
         // Special configuration for CI/CD environments
-        baseUrl: process.env.BASE_URL || 'https://www.saucedemo.com/v1',
-        apiUrl: process.env.API_URL || 'https://api.saucedemo.com/api',
-        username: process.env.TEST_USERNAME || 'standard_user',
-        password: process.env.TEST_PASSWORD || 'secret_sauce',
+        baseUrl: process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com',
+        apiUrl: process.env.API_URL || 'https://opensource-demo.orangehrmlive.com/web/index.php/api/v2',
+        username: process.env.TEST_USERNAME || 'Admin',
+        password: process.env.TEST_PASSWORD || 'admin123',
         timeout: parseInt(process.env.TIMEOUT || '60000'),
         headless: true, // Always headless in CI
         slowMo: 0, // No slow motion in CI
@@ -92,30 +92,30 @@ export class Environment {
   }
 
   /**
-   * Get all available test users for the Sauce Demo application.
+   * Get all available test users for the OrangeHRM application.
    * This centralizes user data and makes it easy to access in tests.
    */
   static getTestUsers() {
     return {
-      standard: {
-        username: 'standard_user',
-        password: 'secret_sauce',
-        description: 'Standard user with full access'
+      admin: {
+        username: 'Admin',
+        password: 'admin123',
+        description: 'Admin user with full system access'
       },
-      locked: {
-        username: 'locked_out_user',
-        password: 'secret_sauce',
-        description: 'User that has been locked out'
+      invalid: {
+        username: 'invalid_user',
+        password: 'invalid_pass',
+        description: 'Invalid user for negative testing'
       },
-      problem: {
-        username: 'problem_user',
-        password: 'secret_sauce',
-        description: 'User that experiences UI problems'
+      wrongPassword: {
+        username: 'Admin',
+        password: 'wrong_password',
+        description: 'Valid username with wrong password'
       },
-      performance: {
-        username: 'performance_glitch_user',
-        password: 'secret_sauce',
-        description: 'User that experiences performance delays'
+      wrongUsername: {
+        username: 'wrong_user',
+        password: 'admin123',
+        description: 'Wrong username with valid password'
       }
     };
   }
@@ -124,8 +124,24 @@ export class Environment {
    * Get specific user credentials by type.
    * This is useful when you need just one user's credentials in a test.
    */
-  static getUserCredentials(userType: 'standard' | 'locked' | 'problem' | 'performance') {
+  static getUserCredentials(userType: 'admin' | 'invalid' | 'wrongPassword' | 'wrongUsername') {
     const users = this.getTestUsers();
     return users[userType];
+  }
+
+  /**
+   * Get valid admin credentials for OrangeHRM.
+   * This is a convenience method for the most common use case.
+   */
+  static getValidCredentials() {
+    return this.getUserCredentials('admin');
+  }
+
+  /**
+   * Get invalid credentials for negative testing.
+   * This is useful for testing login failure scenarios.
+   */
+  static getInvalidCredentials() {
+    return this.getUserCredentials('invalid');
   }
 }

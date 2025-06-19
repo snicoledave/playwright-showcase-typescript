@@ -1,7 +1,7 @@
 {
   "name": "playwright-showcase-typescript",
   "version": "1.0.0",
-  "description": "BDD-style Playwright test automation showcase using Sauce Demo",
+  "description": "BDD-style Playwright test automation showcase using OrangeHRM Demo",
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
@@ -13,8 +13,8 @@
     "test:mobile": "playwright test --project='mobile-*'",
     "test:parallel": "playwright test --workers=4",
     "test:serial": "playwright test --workers=1",
-    "test:login": "playwright test src/tests/login.spec.ts",
-    "test:products": "playwright test src/tests/products.spec.ts",
+    "test:orangehrm-login": "playwright test src/tests/orangehrm-login.spec.ts",
+    "test:login": "playwright test src/tests/orangehrm-login.spec.ts",
     "test:smoke": "playwright test --grep @smoke",
     "test:regression": "playwright test --grep @regression",
     "test:critical": "playwright test --grep @critical",
@@ -25,7 +25,7 @@
     "test:trace": "playwright show-trace",
     "report": "playwright show-report",
     "report:open": "npx playwright show-report",
-    "codegen": "playwright codegen https://www.saucedemo.com/v1",
+    "codegen": "playwright codegen https://opensource-demo.orangehrmlive.com",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write 'src/**/*.ts'",
@@ -51,7 +51,7 @@
     "bdd",
     "testing",
     "automation",
-    "sauce-demo",
+    "orangehrm",
     "page-object-model",
     "e2e"
   ],

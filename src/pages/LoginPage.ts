@@ -1,256 +1,391 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { Environment } from '@config/environment';
 
 /**
- * LoginPage encapsulates all interactions with the Sauce Demo login page.
- * This class follows the Page Object Model pattern to provide a clean,
- * maintainable interface for our BDD-style tests.
+ * OrangeHRM Login Page Object
+ * 
+ * Comprehensive page object for the OrangeHRM demo login page.
+ * Contains all elements and actions needed for login functionality including
+ * validation, error handling, and various login scenarios.
  */
-export class LoginPage extends BasePage {
-  // Define locators as public readonly properties
-  // This allows direct access in tests while preventing accidental reassignment
+export class OrangeHRMLoginPage extends BasePage {
+  // Form elements
   readonly usernameInput: Locator;
   readonly passwordInput: Locator;
   readonly loginButton: Locator;
+  readonly usernameLabel: Locator;
+  readonly passwordLabel: Locator;
+
+  // Error and validation elements
   readonly errorMessage: Locator;
+  readonly usernameRequiredError: Locator;
+  readonly passwordRequiredError: Locator;
+  readonly invalidCredentialsError: Locator;
+
+  // Page elements
+  readonly forgotPasswordLink: Locator;
   readonly loginLogo: Locator;
-  readonly errorMessageContainer: Locator;
-  readonly errorMessageButton: Locator;
+  readonly loginBanner: Locator;
+  readonly loginCard: Locator;
+  readonly loginTitle: Locator;
+  readonly companyBranding: Locator;
+
+  // Social media links (if present)
+  readonly socialMediaLinks: Locator;
+  readonly linkedInLink: Locator;
+  readonly facebookLink: Locator;
+  readonly twitterLink: Locator;
+  readonly youtubeLink: Locator;
+
+  // Footer elements
+  readonly copyrightText: Locator;
+  readonly versionInfo: Locator;
 
   constructor(page: Page) {
     super(page);
     
-    // Initialize all locators using Playwright's recommended patterns
-    // Sauce Demo uses data-test attributes for some elements, which is ideal for test automation
-    this.usernameInput = page.locator('[data-test="username"]');
-    this.passwordInput = page.locator('[data-test="password"]');
-    this.loginButton = page.locator('#login-button');
-    this.errorMessage = page.locator('[data-test="error"]');
-    this.loginLogo = page.locator('.login_logo');
-    this.errorMessageContainer = page.locator('.error-message-container');
-    this.errorMessageButton = page.locator('.error-button');
+    // Initialize form locators
+    this.usernameInput = page.locator('input[name="username"]');
+    this.passwordInput = page.locator('input[name="password"]');
+    this.loginButton = page.locator('button[type="submit"]');
+    this.usernameLabel = page.locator('label').filter({ hasText: 'Username' });
+    this.passwordLabel = page.locator('label').filter({ hasText: 'Password' });
+
+    // Initialize error and validation locators
+    this.errorMessage = page.locator('.oxd-alert-content-text');
+    this.usernameRequiredError = page.locator('.oxd-input-group').filter({ hasText: 'Username' }).locator('.oxd-text--span');
+    this.passwordRequiredError = page.locator('.oxd-input-group').filter({ hasText: 'Password' }).locator('.oxd-text--span');
+    this.invalidCredentialsError = page.locator('.oxd-alert--error .oxd-alert-content-text');
+
+    // Initialize page element locators
+    this.forgotPasswordLink = page.locator('.orangehrm-login-forgot-header');
+    this.loginLogo = page.locator('img[alt="company-branding"]');
+    this.loginBanner = page.locator('.orangehrm-login-branding');
+    this.loginCard = page.locator('.orangehrm-login-container');
+    this.loginTitle = page.locator('.orangehrm-login-title');
+    this.companyBranding = page.locator('.orangehrm-login-branding');
+
+    // Initialize social media locators
+    this.socialMediaLinks = page.locator('.orangehrm-login-footer-sm');
+    this.linkedInLink = page.locator('a[href*="linkedin"]');
+    this.facebookLink = page.locator('a[href*="facebook"]');
+    this.twitterLink = page.locator('a[href*="twitter"]');
+    this.youtubeLink = page.locator('a[href*="youtube"]');
+
+    // Initialize footer locators
+    this.copyrightText = page.locator('.orangehrm-copyright-wrapper');
+    this.versionInfo = page.locator('.orangehrm-version');
   }
 
   /**
-   * Navigate to the login page and ensure it's fully loaded.
-   * This method serves as our entry point for all login-related tests.
+   * Navigate to the OrangeHRM login page
    */
   async goto(): Promise<void> {
-    // Navigate to the specific login page URL
-    await this.navigateTo('/index.html');
-    
-    // Wait for the page to be fully loaded
-    await this.waitForPageLoad();
-    
-    // Additional verification that we're on the correct page
-    // This helps catch navigation errors early in the test
-    await this.loginLogo.waitFor({ state: 'visible', timeout: 5000 });
+    await this.navigateTo('/');
+    await this.waitForLoginPageLoad();
   }
 
   /**
-   * Enter a username into the username field.
-   * This method focuses on a single action, making tests more readable.
-   * 
-   * @param username - The username to enter
+   * Wait for login page to load completely
+   */
+  async waitForLoginPageLoad(): Promise<void> {
+    await this.waitForElement('input[name="username"]');
+    await this.waitForElement('input[name="password"]');
+    await this.waitForElement('button[type="submit"]');
+    await this.waitForOrangeHRMPageLoad();
+  }
+
+  /**
+   * Enter username in the username field
    */
   async enterUsername(username: string): Promise<void> {
-    // Clear any existing value first to ensure clean state
-    await this.usernameInput.clear();
-    // Type the username
-    await this.usernameInput.fill(username);
+    await this.fill('input[name="username"]', username);
   }
 
   /**
-   * Enter a password into the password field.
-   * Maintains consistency with enterUsername for predictable behavior.
-   * 
-   * @param password - The password to enter
+   * Enter password in the password field
    */
   async enterPassword(password: string): Promise<void> {
-    // Clear any existing value first
-    await this.passwordInput.clear();
-    // Type the password
-    await this.passwordInput.fill(password);
+    await this.fill('input[name="password"]', password);
   }
 
   /**
-   * Click the login button to submit the login form.
-   * This method handles just the click action, letting tests control the flow.
+   * Click the login button
    */
-  async clickLoginButton(): Promise<void> {
-    // Ensure the button is clickable before attempting to click
-    await this.loginButton.waitFor({ state: 'visible' });
-    await this.loginButton.click();
+  async clickLogin(): Promise<void> {
+    await this.click('button[type="submit"]');
   }
 
   /**
-   * Perform a complete login operation.
-   * This convenience method combines the individual steps for scenarios
-   * where we just need to log in without focusing on the individual actions.
-   * 
-   * @param username - The username to use for login
-   * @param password - The password to use for login
+   * Perform complete login action
    */
   async login(username: string, password: string): Promise<void> {
     await this.enterUsername(username);
     await this.enterPassword(password);
-    await this.clickLoginButton();
+    await this.clickLogin();
   }
 
   /**
-   * Process a data table of login credentials.
-   * This method is designed to work with our BDD Map-based data tables,
-   * making it easy to handle various field types in a extensible way.
-   * 
-   * @param credentialsTable - A Map containing field names and values
+   * Login with valid admin credentials from environment
    */
-  async fillCredentialsFromTable(credentialsTable: Map<string, string>): Promise<void> {
-    for (const [field, value] of credentialsTable) {
-      switch (field) {
-        case 'Username':
-          await this.enterUsername(value);
-          break;
-        case 'Password':
-          await this.enterPassword(value);
-          break;
-        default:
-          // This helps catch typos or unexpected fields in our data tables
-          throw new Error(`Unknown field in credentials table: ${field}`);
-      }
-    }
+  async loginWithValidCredentials(): Promise<void> {
+    const credentials = Environment.getValidCredentials();
+    await this.login(credentials.username, credentials.password);
+    await this.waitForSuccessfulLogin();
   }
 
   /**
-   * Get the current error message text.
-   * Returns empty string if no error message is present.
+   * Login with invalid credentials
+   */
+  async loginWithInvalidCredentials(): Promise<void> {
+    const credentials = Environment.getInvalidCredentials();
+    await this.login(credentials.username, credentials.password);
+    await this.waitForErrorMessage();
+  }
+
+  /**
+   * Login and wait for successful navigation to dashboard
+   */
+  async loginAndWaitForDashboard(username: string, password: string): Promise<void> {
+    await this.login(username, password);
+    await this.waitForSuccessfulLogin();
+  }
+
+  /**
+   * Wait for successful login (dashboard page)
+   */
+  async waitForSuccessfulLogin(): Promise<void> {
+    await this.waitForUrl(/dashboard/, 15000);
+    await this.waitForElement('.oxd-topbar-header-breadcrumb h6');
+  }
+
+  /**
+   * Wait for error message to appear
+   */
+  async waitForErrorMessage(): Promise<void> {
+    await this.waitForElement('.oxd-alert-content-text', 10000);
+  }
+
+  // Error handling methods
+  /**
+   * Get error message text
    */
   async getErrorMessage(): Promise<string> {
-    try {
-      // Wait briefly for error message to appear
-      await this.errorMessage.waitFor({ state: 'visible', timeout: 2000 });
-      return await this.errorMessage.textContent() || '';
-    } catch {
-      // If error message doesn't appear, return empty string
-      return '';
-    }
+    await this.waitForElement('.oxd-alert-content-text');
+    return await this.getText('.oxd-alert-content-text');
   }
 
   /**
-   * Check if an error message is currently displayed.
-   * Useful for assertions in negative test scenarios.
+   * Check if error message is visible
    */
-  async isErrorMessageDisplayed(): Promise<boolean> {
-    return await this.errorMessage.isVisible();
+  async isErrorVisible(): Promise<boolean> {
+    return await this.isVisible('.oxd-alert-content-text');
   }
 
   /**
-   * Close the error message if it has a close button.
-   * Some error implementations include dismissible messages.
+   * Get username required error message
    */
-  async closeErrorMessage(): Promise<void> {
-    if (await this.errorMessageButton.isVisible()) {
-      await this.errorMessageButton.click();
-      // Wait for the error message to disappear
-      await this.errorMessage.waitFor({ state: 'hidden' });
-    }
+  async getUsernameRequiredError(): Promise<string> {
+    const errorLocator = '.oxd-input-group:has(input[name="username"]) .oxd-text--span';
+    return await this.getText(errorLocator);
   }
 
   /**
-   * Wait for successful login by checking for navigation.
-   * This method encapsulates the logic for determining when login is complete.
+   * Get password required error message
    */
-  async waitForLoginSuccess(): Promise<void> {
-    // Wait for URL to change from login page to inventory page
-    await this.page.waitForURL('**/inventory.html', { 
-      timeout: 10000,
-      waitUntil: 'networkidle' 
-    });
+  async getPasswordRequiredError(): Promise<string> {
+    const errorLocator = '.oxd-input-group:has(input[name="password"]) .oxd-text--span';
+    return await this.getText(errorLocator);
   }
 
   /**
-   * Verify that all login page elements are present and visible.
-   * This is useful for initial page validation in tests.
-   */
-  async isLoginPageDisplayed(): Promise<boolean> {
-    try {
-      // Check all critical elements are visible
-      const elementsToCheck = [
-        this.loginLogo,
-        this.usernameInput,
-        this.passwordInput,
-        this.loginButton
-      ];
-      
-      // Use Promise.all to check all elements in parallel
-      const visibilityChecks = await Promise.all(
-        elementsToCheck.map(element => element.isVisible())
-      );
-      
-      // Return true only if all elements are visible
-      return visibilityChecks.every(isVisible => isVisible);
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Get the list of accepted usernames displayed on the login page.
-   * Sauce Demo helpfully shows valid usernames for testing.
-   */
-  async getAcceptedUsernames(): Promise<string[]> {
-    const credentialsContainer = this.page.locator('#login_credentials');
-    
-    // Check if the credentials section exists
-    if (await credentialsContainer.count() === 0) {
-      return [];
-    }
-    
-    const text = await credentialsContainer.textContent() || '';
-    
-    // Parse the text to extract usernames
-    // The format is usually "Accepted usernames are:\n username1\n username2\n ..."
-    const lines = text.split('\n');
-    return lines
-      .slice(1) // Skip the header line
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-  }
-
-  /**
-   * Get the password hint displayed on the login page.
-   * Sauce Demo shows the password for all users.
-   */
-  async getPasswordHint(): Promise<string> {
-    const passwordContainer = this.page.locator('.login_password');
-    
-    if (await passwordContainer.count() === 0) {
-      return '';
-    }
-    
-    const text = await passwordContainer.textContent() || '';
-    
-    // Extract password from text like "Password for all users:\nsecret_sauce"
-    const lines = text.split('\n');
-    return lines.length > 1 ? lines[1].trim() : '';
-  }
-
-  /**
-   * Check if the username field has a specific validation state.
-   * Useful for testing field validation behavior.
+   * Check if username field has error
    */
   async hasUsernameError(): Promise<boolean> {
-    // Check if the username input has error styling
-    const errorClass = await this.usernameInput.getAttribute('class') || '';
-    return errorClass.includes('error');
+    const errorLocator = '.oxd-input-group:has(input[name="username"]) .oxd-text--span';
+    return await this.isVisible(errorLocator);
   }
 
   /**
-   * Check if the password field has a specific validation state.
-   * Useful for testing field validation behavior.
+   * Check if password field has error
    */
   async hasPasswordError(): Promise<boolean> {
-    // Check if the password input has error styling
-    const errorClass = await this.passwordInput.getAttribute('class') || '';
-    return errorClass.includes('error');
+    const errorLocator = '.oxd-input-group:has(input[name="password"]) .oxd-text--span';
+    return await this.isVisible(errorLocator);
+  }
+
+  // Form interaction methods
+  /**
+   * Clear login form
+   */
+  async clearForm(): Promise<void> {
+    await this.clear('input[name="username"]');
+    await this.clear('input[name="password"]');
+  }
+
+  /**
+   * Get username field value
+   */
+  async getUsernameValue(): Promise<string> {
+    return await this.getValue('input[name="username"]');
+  }
+
+  /**
+   * Get password field value
+   */
+  async getPasswordValue(): Promise<string> {
+    return await this.getValue('input[name="password"]');
+  }
+
+  /**
+   * Check if username field is focused
+   */
+  async isUsernameFieldFocused(): Promise<boolean> {
+    return await this.page.locator('input[name="username"]').evaluate(el => el === document.activeElement);
+  }
+
+  /**
+   * Check if password field is focused
+   */
+  async isPasswordFieldFocused(): Promise<boolean> {
+    return await this.page.locator('input[name="password"]').evaluate(el => el === document.activeElement);
+  }
+
+  /**
+   * Tab from username to password field
+   */
+  async tabToPasswordField(): Promise<void> {
+    await this.usernameInput.press('Tab');
+  }
+
+  /**
+   * Press Enter to submit form
+   */
+  async pressEnterToLogin(): Promise<void> {
+    await this.passwordInput.press('Enter');
+  }
+
+  // Navigation methods
+  /**
+   * Click forgot password link
+   */
+  async clickForgotPassword(): Promise<void> {
+    await this.click('.orangehrm-login-forgot-header');
+    await this.waitForUrl(/requestPasswordResetCode/);
+  }
+
+  // Validation methods
+  /**
+   * Verify we are on the login page
+   */
+  async verifyLoginPage(): Promise<void> {
+    await this.expectElementToBeVisible('input[name="username"]', 'Username field should be visible');
+    await this.expectElementToBeVisible('input[name="password"]', 'Password field should be visible');
+    await this.expectElementToBeVisible('button[type="submit"]', 'Login button should be visible');
+    await this.expectUrlToContain('login', 'Should be on login page');
+  }
+
+  /**
+   * Verify login page elements are present
+   */
+  async verifyLoginPageElements(): Promise<void> {
+    await this.verifyLoginPage();
+    await this.expectElementToBeVisible('.orangehrm-login-container', 'Login container should be visible');
+    await this.expectElementToBeVisible('img[alt="company-branding"]', 'Company logo should be visible');
+  }
+
+  /**
+   * Verify login form is interactive
+   */
+  async verifyLoginFormInteractive(): Promise<void> {
+    // Check if form elements are enabled
+    await expect(this.usernameInput).toBeEnabled();
+    await expect(this.passwordInput).toBeEnabled();
+    await expect(this.loginButton).toBeEnabled();
+  }
+
+  /**
+   * Verify error message for invalid credentials
+   */
+  async verifyInvalidCredentialsError(): Promise<void> {
+    await this.expectElementToBeVisible('.oxd-alert--error', 'Error alert should be visible');
+    const errorText = await this.getErrorMessage();
+    expect(errorText.toLowerCase()).toContain('invalid');
+  }
+
+  /**
+   * Verify required field errors
+   */
+  async verifyRequiredFieldErrors(): Promise<void> {
+    await this.clickLogin(); // Try to login with empty fields
+    
+    // Check for required field errors
+    const hasUsernameError = await this.hasUsernameError();
+    const hasPasswordError = await this.hasPasswordError();
+    
+    expect(hasUsernameError || hasPasswordError).toBeTruthy();
+  }
+
+  // Utility methods
+  /**
+   * Get login page title
+   */
+  async getLoginPageTitle(): Promise<string> {
+    return await this.getTitle();
+  }
+
+  /**
+   * Check if forgot password link is visible
+   */
+  async isForgotPasswordLinkVisible(): Promise<boolean> {
+    return await this.isVisible('.orangehrm-login-forgot-header');
+  }
+
+  /**
+   * Get company branding text
+   */
+  async getCompanyBrandingText(): Promise<string> {
+    return await this.getText('.orangehrm-login-branding');
+  }
+
+  /**
+   * Check if social media links are present
+   */
+  async areSocialMediaLinksVisible(): Promise<boolean> {
+    return await this.isVisible('.orangehrm-login-footer-sm');
+  }
+
+  /**
+   * Get copyright text
+   */
+  async getCopyrightText(): Promise<string> {
+    return await this.getText('.orangehrm-copyright-wrapper');
+  }
+
+  /**
+   * Take screenshot of login page
+   */
+  async takeScreenshot(name: string = 'login-page'): Promise<void> {
+    await super.takeScreenshot(name);
+  }
+
+  /**
+   * Get login page summary information
+   */
+  async getLoginPageSummary(): Promise<{
+    title: string;
+    hasLogo: boolean;
+    hasForgotPassword: boolean;
+    hasSocialLinks: boolean;
+    copyrightText: string;
+  }> {
+    return {
+      title: await this.getLoginPageTitle(),
+      hasLogo: await this.isVisible('img[alt="company-branding"]'),
+      hasForgotPassword: await this.isForgotPasswordLinkVisible(),
+      hasSocialLinks: await this.areSocialMediaLinksVisible(),
+      copyrightText: await this.getCopyrightText()
+    };
   }
 }
